@@ -24,4 +24,15 @@ app.use(express.static("public"));
 //access the user cookies from the server
 app.use(cookieParser());
 
+// routes import
+import userRouter from "./routes/user.route.js";
+
+//routes declaration
+app.use("/api/v1/users", userRouter);
+
+//http://localhost:8000/api/v1/users/register
+
+// app.use("/api/v1/users", upload2.single("profileImageUrl"), userRouter);
+// app.use("/api/v1/users", upload.single("coverImage"), blogRouter);
+
 export default app;
