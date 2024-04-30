@@ -23,7 +23,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
 };
 
 export const registerUser = asyncHandler(async (req, res) => {
-  //get details from the user from the frontend / postman
+  // get details from the user from the frontend / postman
   // validation - not empty
   // check if user already exists : username ,email
   // check for images, check for avatar
@@ -106,19 +106,22 @@ export const loginUser = asyncHandler(async (req, res) => {
   //send cookie
 
   const { email, username, password } = req.body;
-  if (!email || !username) {
-    throw new ApiError(400, "username or email is requried");
+  console.log("Email", email, " and", username);
+  if (!username && !email) {
+    throw new ApiError(400, "username or email is required");
   }
 
   const user = await User.findOne({
     $or: [{ username }, { email }],
   });
+  console.log(user);
 
   if (!user) {
     return new ApiError(404, "user doesn't existed. ");
   }
 
   const isPasswordValid = await user.isPasswordCorrect(password);
+  console.log(isPasswordValid);
 
   if (!isPasswordValid) {
     return new ApiError(401, "Invalid user Credentials. ");
@@ -150,4 +153,27 @@ export const loginUser = asyncHandler(async (req, res) => {
     );
 });
 
-export const logoutUser = () => {};
+export const logoutUser = asyncHandler(async (req, res) => {
+  await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $unset: {
+        refreshToken: 1,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "User logged Out."));
+});
